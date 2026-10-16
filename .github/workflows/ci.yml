@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: lint · format · typecheck · test (PostgreSQL 18) · build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: gp
+          POSTGRES_PASSWORD: gp
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U gp" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      # The tests create one database per file on this server instead of starting embedded PostgreSQL.
+      DATABASE_URL_ADMIN: postgresql://gp:gp@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Generated files are committed (src/generated, schemas)
+        run: git diff --exit-code -- src/generated schemas
+      - name: A pull request carries a changeset (or the label "no-release")
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no-release')
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          pnpm changeset status --since="origin/${{ github.base_ref }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist
+            schemas
+          retention-days: 7
+
+  publish:
+    # Tag vX.Y.Z (created by `pnpm version-packages` + release commit) → GitHub Packages. Not run on PRs.
+    name: publish to GitHub Packages
+    needs: [check]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@collective'
+      - run: pnpm install --frozen-lockfile
+      - name: Tag matches package.json version
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      - run: pnpm build
+      - name: Additive-only check (D-153) — migrations of the previous release are unchanged
+        run: |
+          git fetch --tags --force
+          prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          if [ -n "$prev" ] && git diff --name-status "$prev" HEAD -- migrations/ | grep -v '^A'; then
+            echo "::error::released migrations were modified or deleted since $prev — add a new migration instead"
+            exit 1
+          fi
+      - run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

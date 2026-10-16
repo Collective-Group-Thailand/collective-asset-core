@@ -1,0 +1,164 @@
+{
+  "$id": "https://schemas.collective.invalid/asset-core/procurement.order.updated.json",
+  "title": "procurement.order.updated",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "type": {
+      "type": "string",
+      "const": "procurement.order.updated"
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "ISO 8601 date-time with offset"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 300
+    },
+    "sourcePlatform": {
+      "type": "string",
+      "enum": [
+        "getproperty",
+        "getbuild",
+        "getpack"
+      ]
+    },
+    "tenantId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "rfqRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "orderRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "quoted",
+            "ordered",
+            "shipped",
+            "delivered",
+            "cancelled"
+          ]
+        },
+        "price": {
+          "type": "object",
+          "properties": {
+            "subtotal": {
+              "type": "string",
+              "pattern": "^-?\\d{1,12}(\\.\\d{1,2})?$",
+              "description": "decimal string, THB"
+            },
+            "vat": {
+              "type": "string",
+              "pattern": "^-?\\d{1,12}(\\.\\d{1,2})?$",
+              "description": "decimal string, THB"
+            },
+            "total": {
+              "type": "string",
+              "pattern": "^-?\\d{1,12}(\\.\\d{1,2})?$",
+              "description": "decimal string, THB"
+            },
+            "currency": {
+              "default": "THB",
+              "type": "string",
+              "const": "THB"
+            }
+          },
+          "required": [
+            "subtotal",
+            "vat",
+            "total"
+          ]
+        },
+        "proofOfDelivery": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "https URL (signed, time-limited for files)"
+            },
+            "deliveredAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "description": "ISO 8601 date-time with offset"
+            }
+          },
+          "required": [
+            "url",
+            "deliveredAt"
+          ]
+        },
+        "workOrderId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        }
+      },
+      "required": [
+        "rfqRef",
+        "orderRef",
+        "status"
+      ]
+    }
+  },
+  "required": [
+    "eventId",
+    "type",
+    "version",
+    "occurredAt",
+    "idempotencyKey",
+    "sourcePlatform",
+    "tenantId",
+    "payload"
+  ]
+}

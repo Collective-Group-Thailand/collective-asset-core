@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+src/generated
+schemas
+migrations
+prisma
+.changeset/*.md
+*.md
