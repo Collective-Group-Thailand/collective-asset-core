@@ -10,7 +10,7 @@ import {
   findBackRelations,
   PrismaFragmentError,
 } from '../src/prisma-fragment.js';
-import { checkPrismaDrift } from '../src/testing/drift.js';
+import { checkPrismaDrift, parseUnsupportedFields } from '../src/testing/drift.js';
 import { createTestDatabase, type TestDatabase } from './support/db.js';
 import { DATASOURCE_HEADER, getDmmf, prismaValidate } from './support/prisma.js';
 
@@ -46,6 +46,14 @@ describe('Prisma fragment (prisma/core.prisma)', () => {
     });
     expect(out).toMatch(/valid/);
   }, 120_000);
+
+  it('reads Unsupported("…") fields, which the DMMF omits', () => {
+    const text = `model RetentionPolicy {\n  id String @id\n  retainFor Unsupported("interval") @map("retain_for")\n  extra Unsupported("tsrange")?\n}\n`;
+    expect(parseUnsupportedFields(text).get('RetentionPolicy')).toEqual([
+      { column: 'retain_for', type: 'interval', optional: false },
+      { column: 'extra', type: 'tsrange', optional: true },
+    ]);
+  });
 
   it('requires app → core relations to be named', () => {
     const unnamed = APP.replace('@relation("AuditEntryTenant", ', '@relation(');
@@ -92,12 +100,17 @@ describe('Prisma fragment (prisma/core.prisma)', () => {
         await db.admin.query(`ALTER TABLE core.unit ADD COLUMN extra text`);
         await db.admin.query(`DROP INDEX core.unit_floor_id_idx`);
         await db.admin.query(`ALTER TABLE core.tenant ALTER COLUMN timezone SET DEFAULT 'UTC'`);
+        await db.admin.query(`DROP INDEX core.unit_ownership_party_id_idx`);
+        await db.admin.query(
+          `CREATE INDEX unit_ownership_party_id_idx ON core.unit_ownership (party_id DESC)`,
+        );
         const problems = await check();
         expect(problems).toEqual(
           expect.arrayContaining([
             expect.stringContaining('core.unit.extra'),
             expect.stringContaining('unit_floor_id_idx'),
             expect.stringContaining('core.tenant.timezone: default UTC'),
+            expect.stringContaining('unit_ownership_party_id_idx: column party_id is DESC in the database'),
           ]),
         );
       } finally {
