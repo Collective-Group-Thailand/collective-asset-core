@@ -161,6 +161,7 @@ enum PartyLinkVia {
   line_match
   integration
   admin
+  phone_match
 
   @@map("party_link_via")
   @@schema("core")
@@ -726,6 +727,8 @@ model Party {
   @@index([tenantId, idNumberHash], map: "party_tenant_id_id_number_hash_idx")
   @@index([tenantId, lineUserId], map: "party_tenant_id_line_user_id_idx")
   @@index([displayName(ops: raw("gin_trgm_ops"))], type: Gin, map: "party_display_name_trgm_idx")
+  @@index([phoneE164], map: "party_phone_e164_idx", where: raw("((deleted_at IS NULL) AND (anonymised_at IS NULL))"))
+  @@index([lineUserId], map: "party_line_user_id_idx", where: raw("((deleted_at IS NULL) AND (anonymised_at IS NULL))"))
   @@map("party")
   @@schema("core")
 }

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { assetCoreMigrate } from '../src/migrate.js';
 import { createTestDatabase, type TestDatabase } from './support/db.js';
-import { B, P, seedRlsWorld, T, U } from './support/fixtures.js';
+import { B, P, seedRlsWorld, T, U, USER } from './support/fixtures.js';
 
 describe('core constraints and triggers', () => {
   let db: TestDatabase;
@@ -201,6 +201,31 @@ describe('core constraints and triggers', () => {
         `INSERT INTO core.tenant (slug, display_name, legal_name, legal_form) VALUES ('v7', 'v7', 'v7', 'company') RETURNING uuid_extract_version(id) AS v`,
       );
       expect(fresh.rows[0]!.v).toBe(7);
+    });
+  });
+  describe('party matching (0.2.0)', () => {
+    it('links a user to a party matched by a verified phone (party_link_via phone_match)', async () => {
+      await tx(`UPDATE core.party SET phone_e164 = '+66810009999' WHERE id = $1`, [P.occupantCondo1]);
+      const { rows } = await db.admin.query<{ id: string; tenant_id: string }>(
+        `SELECT id, tenant_id FROM core.party WHERE phone_e164 = '+66810009999' AND deleted_at IS NULL AND anonymised_at IS NULL`,
+      );
+      expect(rows.map((r) => r.id)).toEqual([P.occupantCondo1]);
+      await tx(
+        `INSERT INTO core.party_user_link (tenant_id, party_id, user_id, linked_via) VALUES ($1, $2, $3, 'phone_match')`,
+        [rows[0]!.tenant_id, P.occupantCondo1, USER],
+      );
+      const link = await db.admin.query(`SELECT linked_via FROM core.party_user_link WHERE party_id = $1`, [
+        P.occupantCondo1,
+      ]);
+      expect(link.rows).toEqual([{ linked_via: 'phone_match' }]);
+    });
+
+    it('has the cross-tenant lookup indexes on phone and LINE user id', async () => {
+      const { rows } = await db.admin.query<{ indexname: string }>(
+        `SELECT indexname FROM pg_indexes WHERE schemaname = 'core' AND tablename = 'party'
+            AND indexname IN ('party_phone_e164_idx', 'party_line_user_id_idx') ORDER BY 1`,
+      );
+      expect(rows.map((r) => r.indexname)).toEqual(['party_line_user_id_idx', 'party_phone_e164_idx']);
     });
   });
 });
