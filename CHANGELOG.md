@@ -1,5 +1,15 @@
 # @collective/asset-core
 
+## 0.2.0 — 2026-10-17
+
+Additive (D-153: allowed within the 0.x major), for getproperty B1.3 resident sign-in.
+
+- Migration `0008_party_matching`: enum value `core.party_link_via.phone_match` (a resident who verified a phone by
+  SMS OTP is linked to the parties carrying that phone); partial indexes `party_phone_e164_idx` and
+  `party_line_user_id_idx` (`WHERE deleted_at IS NULL AND anonymised_at IS NULL`) for the cross-tenant lookups the
+  identity service runs as `gp_platform`.
+- `PARTY_LINK_VIAS` and `prisma/core.prisma` (enum value + two `@@index`) updated; tests 65.
+
 ## 0.1.0 — 2026-10-17
 
 First release (B1.2 step 2a, schema-design v2 §7.1, ADR-0010).

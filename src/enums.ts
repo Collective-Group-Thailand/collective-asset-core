@@ -58,7 +58,7 @@ export type IdDocumentType = (typeof ID_DOCUMENT_TYPES)[number];
 export const PARTY_LINK_STATES = ['active', 'unlinked'] as const;
 export type PartyLinkState = (typeof PARTY_LINK_STATES)[number];
 
-export const PARTY_LINK_VIAS = ['invitation', 'line_match', 'integration', 'admin'] as const;
+export const PARTY_LINK_VIAS = ['invitation', 'line_match', 'integration', 'admin', 'phone_match'] as const;
 export type PartyLinkVia = (typeof PARTY_LINK_VIAS)[number];
 
 export const OWNERSHIP_SOURCES = ['manual', 'import', 'getbuild_transfer', 'land_office'] as const;
