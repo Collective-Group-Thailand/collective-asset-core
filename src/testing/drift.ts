@@ -93,6 +93,7 @@ interface DbIndex {
   method: string;
   columns: (string | null)[];
   opclasses: string[];
+  descending: boolean[];
   predicate: string | null;
   backs_exclusion: boolean;
 }
@@ -130,6 +131,8 @@ export async function checkPrismaDrift(
 
   // DMMF enums carry no schema: read `@@schema("…")` of each enum block from the source text.
   const enumSchemas = parseEnumSchemas(options.schemaText ?? '');
+  // DMMF omits Unsupported("…") fields: read them from the source text.
+  const unsupported = parseUnsupportedFields(options.schemaText ?? '');
   const allEnums = datamodel.enums.map((e) => ({
     ...e,
     schema: e.schema ?? enumSchemas.get(e.name) ?? 'public',
@@ -241,6 +244,25 @@ export async function checkPrismaDrift(
         );
       }
     }
+    for (const u of unsupported.get(m.name) ?? []) {
+      seen.add(u.column);
+      const c = dbCols.get(u.column);
+      if (!c)
+        problems.push(
+          `column ${table}.${u.column}: Unsupported("${u.type}") in Prisma, missing in the database`,
+        );
+      else {
+        if (c.type !== u.type)
+          problems.push(
+            `column ${table}.${u.column}: type ${c.type} in the database ≠ Unsupported("${u.type}")`,
+          );
+        if (c.not_null === u.optional) {
+          problems.push(
+            `column ${table}.${u.column}: ${c.not_null ? 'NOT NULL' : 'nullable'} in the database but ${u.optional ? 'optional' : 'required'} in Prisma`,
+          );
+        }
+      }
+    }
     for (const col of dbCols.keys()) {
       if (!seen.has(col)) problems.push(`column ${table}.${col}: exists in the database but not in Prisma`);
     }
@@ -255,6 +277,7 @@ export async function checkPrismaDrift(
                    ORDER BY k.ord) AS columns,
             ARRAY(SELECT oc.opcname::text FROM unnest(i.indclass::oid[]) WITH ORDINALITY k(oid, ord)
                     JOIN pg_opclass oc ON oc.oid = k.oid ORDER BY k.ord) AS opclasses,
+            ARRAY(SELECT (o & 1) = 1 FROM unnest(i.indoption::int2[]) WITH ORDINALITY k(o, ord) ORDER BY k.ord) AS descending,
             pg_get_expr(i.indpred, i.indrelid) AS predicate,
             EXISTS (SELECT 1 FROM pg_constraint x WHERE x.conindid = i.indexrelid AND x.contype = 'x') AS backs_exclusion
        FROM pg_index i
@@ -321,6 +344,12 @@ export async function checkPrismaDrift(
     ix.fields.forEach((f, i) => {
       if (f.operatorClass && d.opclasses[i] !== f.operatorClass) {
         problems.push(`index ${key}: operator class ${d.opclasses[i]} ≠ Prisma ${f.operatorClass}`);
+      }
+      const desc = f.sortOrder === 'desc';
+      if (method === 'btree' && Boolean(d.descending[i]) !== desc) {
+        problems.push(
+          `index ${key}: column ${cols[i]} is ${d.descending[i] ? 'DESC' : 'ASC'} in the database, ${desc ? 'Desc' : 'Asc'} in Prisma`,
+        );
       }
     });
     const expectedPredicate = predicates.get(name) ?? null;
@@ -494,6 +523,21 @@ export function normaliseDbDefault(expr: string | null): string | null {
 function normaliseNumber(n: string): string {
   if (!n.includes('.')) return n;
   return n.replace(/0+$/, '').replace(/\.$/, '');
+}
+
+/** Model name → Unsupported("…") fields (column name, database type, optional) from .prisma source text. */
+export function parseUnsupportedFields(
+  schemaText: string,
+): Map<string, { column: string; type: string; optional: boolean }[]> {
+  const out = new Map<string, { column: string; type: string; optional: boolean }[]>();
+  for (const m of schemaText.matchAll(/^model\s+(\w+)\s*\{([\s\S]*?)^\}/gm)) {
+    for (const f of (m[2] ?? '').matchAll(/^\s*(\w+)\s+Unsupported\("([^"]+)"\)(\?)?([^\n]*)$/gm)) {
+      const column = /@map\("([^"]+)"\)/.exec(f[4] ?? '')?.[1] ?? f[1]!;
+      if (!out.has(m[1]!)) out.set(m[1]!, []);
+      out.get(m[1]!)!.push({ column, type: f[2]!, optional: f[3] === '?' });
+    }
+  }
+  return out;
 }
 
 /** Map of enum name → `@@schema("…")` from .prisma source text. */
