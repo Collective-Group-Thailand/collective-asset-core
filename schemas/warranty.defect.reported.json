@@ -1,0 +1,152 @@
+{
+  "$id": "https://schemas.collective.invalid/asset-core/warranty.defect.reported.json",
+  "title": "warranty.defect.reported",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "type": {
+      "type": "string",
+      "const": "warranty.defect.reported"
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "ISO 8601 date-time with offset"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 300
+    },
+    "sourcePlatform": {
+      "type": "string",
+      "enum": [
+        "getproperty",
+        "getbuild",
+        "getpack"
+      ]
+    },
+    "tenantId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "serviceRequestId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        "buildingRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "unitRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "assetItemRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "photos": {
+          "default": [],
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri",
+            "description": "https URL (signed, time-limited for files)"
+          }
+        },
+        "reportedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "description": "ISO 8601 date-time with offset"
+        },
+        "reporter": {
+          "type": "object",
+          "properties": {
+            "enc": {
+              "type": "string",
+              "minLength": 16,
+              "description": "base64 AES-256-GCM envelope (shared integration key)"
+            }
+          },
+          "required": [
+            "enc"
+          ],
+          "description": "encrypted PII"
+        }
+      },
+      "required": [
+        "serviceRequestId",
+        "buildingRef",
+        "category",
+        "description",
+        "reportedAt",
+        "reporter"
+      ]
+    }
+  },
+  "required": [
+    "eventId",
+    "type",
+    "version",
+    "occurredAt",
+    "idempotencyKey",
+    "sourcePlatform",
+    "tenantId",
+    "payload"
+  ]
+}

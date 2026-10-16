@@ -1,0 +1,119 @@
+{
+  "name": "@collective/asset-core",
+  "version": "0.1.0",
+  "description": "Collective Group asset core: the `core` PostgreSQL schema (SQL migrations + runner), its Prisma fragment, TypeScript row types and enums, tenant-scope helpers and the zod integration event contracts (D-153, ADR-0010).",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "packageManager": "pnpm@10.18.1",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/collective-group/collective-asset-core.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "files": [
+    "dist",
+    "migrations",
+    "prisma/core.prisma",
+    "schemas",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "bin": {
+    "asset-core": "./dist/esm/cli.js"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./contracts": {
+      "import": {
+        "types": "./dist/esm/contracts/index.d.ts",
+        "default": "./dist/esm/contracts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/contracts/index.d.ts",
+        "default": "./dist/cjs/contracts/index.js"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/esm/testing/index.d.ts",
+        "default": "./dist/esm/testing/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/testing/index.d.ts",
+        "default": "./dist/cjs/testing/index.js"
+      }
+    },
+    "./prisma/core.prisma": "./prisma/core.prisma",
+    "./migrations/*": "./migrations/*",
+    "./schemas/*": "./schemas/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "embed": "node scripts/embed-migrations.mjs",
+    "build": "node scripts/embed-migrations.mjs --check && node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && node scripts/finish-build.mjs",
+    "lint": "eslint --cache .",
+    "lint:fix": "eslint --cache --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "schemas:build": "node --experimental-strip-types scripts/build-json-schemas.ts",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
+  },
+  "dependencies": {
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@eslint/js": "^10.0.1",
+    "@prisma/prisma-schema-wasm": "8.1.0-1.d1b3f377ca835d73fd50954a5e22128b9ebdd6b8",
+    "@types/node": "^24.13.6",
+    "@types/pg": "^8.23.1",
+    "embedded-postgres": "18.4.0-beta.17",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "prettier": "^3.9.10",
+    "prisma": "7.10.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@embedded-postgres/linux-x64",
+      "@embedded-postgres/linux-arm64",
+      "@embedded-postgres/darwin-arm64",
+      "@embedded-postgres/darwin-x64",
+      "@embedded-postgres/windows-x64"
+    ],
+    "ignoredBuiltDependencies": [
+      "@prisma/engines",
+      "prisma"
+    ]
+  }
+}

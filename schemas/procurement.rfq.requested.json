@@ -1,0 +1,210 @@
+{
+  "$id": "https://schemas.collective.invalid/asset-core/procurement.rfq.requested.json",
+  "title": "procurement.rfq.requested",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "type": {
+      "type": "string",
+      "const": "procurement.rfq.requested"
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "ISO 8601 date-time with offset"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 300
+    },
+    "sourcePlatform": {
+      "type": "string",
+      "enum": [
+        "getproperty",
+        "getbuild",
+        "getpack"
+      ]
+    },
+    "tenantId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "rfqRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "buildingId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        "deliverTo": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "address": {
+              "type": "object",
+              "properties": {
+                "line1": {
+                  "type": "string"
+                },
+                "line2": {
+                  "type": "string"
+                },
+                "subdistrict": {
+                  "type": "string"
+                },
+                "district": {
+                  "type": "string"
+                },
+                "province": {
+                  "type": "string"
+                },
+                "postcode": {
+                  "type": "string",
+                  "pattern": "^\\d{5}$"
+                },
+                "country": {
+                  "default": "TH",
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2
+                }
+              }
+            },
+            "contact": {
+              "type": "object",
+              "properties": {
+                "enc": {
+                  "type": "string",
+                  "minLength": 16,
+                  "description": "base64 AES-256-GCM envelope (shared integration key)"
+                }
+              },
+              "required": [
+                "enc"
+              ],
+              "description": "encrypted PII"
+            }
+          },
+          "required": [
+            "name",
+            "address"
+          ]
+        },
+        "neededBy": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "description": "ISO 8601 date (YYYY-MM-DD)"
+        },
+        "items": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sku": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quantity": {
+                "type": "string",
+                "pattern": "^-?\\d{1,12}(\\.\\d{1,6})?$",
+                "description": "decimal string"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20
+              },
+              "spec": {
+                "type": "string",
+                "maxLength": 5000
+              }
+            },
+            "required": [
+              "description",
+              "quantity",
+              "unit"
+            ]
+          }
+        },
+        "workOrderId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        "assetItemId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        }
+      },
+      "required": [
+        "rfqRef",
+        "buildingId",
+        "deliverTo",
+        "neededBy",
+        "items"
+      ]
+    }
+  },
+  "required": [
+    "eventId",
+    "type",
+    "version",
+    "occurredAt",
+    "idempotencyKey",
+    "sourcePlatform",
+    "tenantId",
+    "payload"
+  ]
+}

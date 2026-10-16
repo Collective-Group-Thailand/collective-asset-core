@@ -1,0 +1,593 @@
+{
+  "$id": "https://schemas.collective.invalid/asset-core/building.handover.requested.json",
+  "title": "building.handover.requested",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "type": {
+      "type": "string",
+      "const": "building.handover.requested"
+    },
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "ISO 8601 date-time with offset"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 300
+    },
+    "sourcePlatform": {
+      "type": "string",
+      "enum": [
+        "getproperty",
+        "getbuild",
+        "getpack"
+      ]
+    },
+    "tenantId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "description": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "description": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "developerTenantRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "id of the row in the source platform"
+        },
+        "requestedHandoverAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "description": "ISO 8601 date-time with offset"
+        },
+        "property": {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "id of the row in the source platform"
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "address": {
+              "type": "object",
+              "properties": {
+                "line1": {
+                  "type": "string"
+                },
+                "line2": {
+                  "type": "string"
+                },
+                "subdistrict": {
+                  "type": "string"
+                },
+                "district": {
+                  "type": "string"
+                },
+                "province": {
+                  "type": "string"
+                },
+                "postcode": {
+                  "type": "string",
+                  "pattern": "^\\d{5}$"
+                },
+                "country": {
+                  "default": "TH",
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2
+                }
+              }
+            }
+          },
+          "required": [
+            "ref",
+            "code",
+            "name",
+            "address"
+          ]
+        },
+        "building": {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "id of the row in the source platform"
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "apartment",
+                "condo",
+                "house_cluster",
+                "mixed_use"
+              ]
+            },
+            "floorsCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "registrationNo": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "code",
+            "name",
+            "type"
+          ]
+        },
+        "floors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "ref",
+              "level",
+              "name"
+            ]
+          }
+        },
+        "units": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "floorRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "unitNo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "room",
+                  "condo_unit",
+                  "house",
+                  "shop",
+                  "parking"
+                ]
+              },
+              "areaSqm": {
+                "type": "string",
+                "pattern": "^-?\\d{1,12}(\\.\\d{1,6})?$",
+                "description": "decimal string"
+              },
+              "ownershipRatio": {
+                "type": "string",
+                "pattern": "^-?\\d{1,12}(\\.\\d{1,6})?$",
+                "description": "decimal string"
+              },
+              "titleDeedNo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ref",
+              "unitNo",
+              "type"
+            ]
+          }
+        },
+        "parties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "person",
+                  "company"
+                ]
+              },
+              "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "phone": {
+                "type": "object",
+                "properties": {
+                  "enc": {
+                    "type": "string",
+                    "minLength": 16,
+                    "description": "base64 AES-256-GCM envelope (shared integration key)"
+                  }
+                },
+                "required": [
+                  "enc"
+                ],
+                "description": "encrypted PII"
+              },
+              "email": {
+                "type": "object",
+                "properties": {
+                  "enc": {
+                    "type": "string",
+                    "minLength": 16,
+                    "description": "base64 AES-256-GCM envelope (shared integration key)"
+                  }
+                },
+                "required": [
+                  "enc"
+                ],
+                "description": "encrypted PII"
+              },
+              "lineUserId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "language": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              }
+            },
+            "required": [
+              "ref",
+              "type",
+              "displayName"
+            ]
+          }
+        },
+        "unitOwnerships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "unitRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "partyRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "sharePct": {
+                "type": "string",
+                "pattern": "^-?\\d{1,12}(\\.\\d{1,6})?$",
+                "description": "decimal string"
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "ISO 8601 date (YYYY-MM-DD)"
+              }
+            },
+            "required": [
+              "unitRef",
+              "partyRef",
+              "sharePct",
+              "validFrom"
+            ]
+          }
+        },
+        "defects": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "unitRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "in_progress",
+                  "closed"
+                ]
+              },
+              "reportedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "ISO 8601 date-time with offset"
+              },
+              "closedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "ISO 8601 date-time with offset"
+              }
+            },
+            "required": [
+              "ref",
+              "category",
+              "status",
+              "reportedAt"
+            ]
+          }
+        },
+        "warrantyTerms": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "building",
+                  "unit",
+                  "asset_item"
+                ]
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "startsOn": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "ISO 8601 date (YYYY-MM-DD)"
+              },
+              "endsOn": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "ISO 8601 date (YYYY-MM-DD)"
+              },
+              "warrantorPartyRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              }
+            },
+            "required": [
+              "scope",
+              "ref",
+              "startsOn",
+              "endsOn"
+            ]
+          }
+        },
+        "documents": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "as_built",
+                  "floor_plan",
+                  "certificate",
+                  "warranty",
+                  "contract",
+                  "other"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "https URL (signed, time-limited for files)"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "ref",
+              "kind",
+              "url",
+              "sha256"
+            ]
+          }
+        },
+        "assetItems": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "manufacturer": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "serial": {
+                "type": "string"
+              },
+              "unitRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "floorRef": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "id of the row in the source platform"
+              },
+              "installDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "ISO 8601 date (YYYY-MM-DD)"
+              },
+              "warrantyUntil": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "description": "ISO 8601 date (YYYY-MM-DD)"
+              }
+            },
+            "required": [
+              "ref",
+              "category",
+              "name"
+            ]
+          }
+        }
+      },
+      "required": [
+        "developerTenantRef",
+        "requestedHandoverAt",
+        "property",
+        "building",
+        "floors",
+        "units",
+        "parties",
+        "unitOwnerships"
+      ]
+    }
+  },
+  "required": [
+    "eventId",
+    "type",
+    "version",
+    "occurredAt",
+    "idempotencyKey",
+    "sourcePlatform",
+    "tenantId",
+    "payload"
+  ]
+}
