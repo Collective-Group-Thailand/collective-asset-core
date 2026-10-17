@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 export const PACKAGE_NAME = "@collective/asset-core";
-export const PACKAGE_VERSION = "0.2.0";
+export const PACKAGE_VERSION = "0.2.1";
 
 export interface EmbeddedMigration {
   /** File name without .sql, e.g. "0001_extensions_helpers". Applied in this order. */
@@ -53,6 +53,11 @@ export const MIGRATIONS: readonly EmbeddedMigration[] = [
     "id": "0008_party_matching",
     "checksum": "1faf324f5db1e6f7665751f0ca89d9077211dbbf7e9c81d6f36addd1311b1f1e",
     "sql": "-- collective-asset-core 0.2.0 / 0008 — party matching for resident sign-in (getproperty B1.3, additive only).\n-- A resident who proves possession of a phone number by SMS OTP is linked to the parties that carry that phone\n-- (operators entered it on the party); a LINE sign-in links parties carrying that LINE user id. Both lookups run\n-- across tenants as gp_platform (identity service), so they need indexes that do not start with tenant_id.\nALTER TYPE core.party_link_via ADD VALUE IF NOT EXISTS 'phone_match';\n\nCREATE INDEX IF NOT EXISTS party_phone_e164_idx ON core.party (phone_e164) WHERE (deleted_at IS NULL AND anonymised_at IS NULL);\nCREATE INDEX IF NOT EXISTS party_line_user_id_idx ON core.party (line_user_id) WHERE (deleted_at IS NULL AND anonymised_at IS NULL);\nCOMMENT ON INDEX core.party_phone_e164_idx IS 'Cross-tenant party match after a verified SMS OTP (party_user_link.linked_via = phone_match).';\nCOMMENT ON INDEX core.party_line_user_id_idx IS 'Cross-tenant party match at LINE sign-in (party_user_link.linked_via = line_match).';\n"
+  },
+  {
+    "id": "0009_grant_access_argument",
+    "checksum": "22d16dc058ace06d1b12d9ce62e488a9b31841b1a31530c1f25824f3f7137877",
+    "sql": "-- collective-asset-core 0.2.1 / 0009 — fix: the `access` argument of core.accessible_building_ids() and\n-- core.accessible_unit_ids() was shadowed by the asset_access_grant.access column (in SQL-language functions a column\n-- name wins over a parameter name), so `access = 'read'` compared the grant's own column and a read grant answered\n-- true for 'write'. The functions now use positional parameters; signatures, volatility and grants are unchanged.\n-- RLS policies only ask for 'read' (the default) and were not affected; callers asking 'write' were.\n\nCREATE OR REPLACE FUNCTION core.accessible_building_ids(module text, access text DEFAULT 'read') RETURNS uuid[]\n  LANGUAGE sql STABLE SECURITY DEFINER PARALLEL SAFE\n  SET search_path = pg_catalog\nAS $$\n  SELECT coalesce(array_agg(DISTINCT s.id), '{}'::uuid[])\n    FROM (\n      SELECT b.id FROM core.building b\n       WHERE b.owner_tenant_id = core.current_tenant_id() OR b.operator_tenant_id = core.current_tenant_id()\n      UNION ALL\n      SELECT g.building_id FROM core.asset_access_grant g\n       WHERE g.grantee_tenant_id = core.current_tenant_id()\n         AND g.scope = 'building'\n         AND g.revoked_at IS NULL\n         AND g.valid_from <= now() AND (g.valid_to IS NULL OR g.valid_to > now())\n         AND ($1 = 'any' OR g.modules && ARRAY[$1, '*'])\n         AND ($2 = 'read' OR g.access = 'write')\n    ) s\n$$;\n\nCREATE OR REPLACE FUNCTION core.accessible_unit_ids(module text, access text DEFAULT 'read') RETURNS uuid[]\n  LANGUAGE sql STABLE SECURITY DEFINER PARALLEL SAFE\n  SET search_path = pg_catalog\nAS $$\n  SELECT coalesce(array_agg(DISTINCT g.unit_id), '{}'::uuid[])\n    FROM core.asset_access_grant g\n   WHERE g.grantee_tenant_id = core.current_tenant_id()\n     AND g.scope = 'unit'\n     AND g.revoked_at IS NULL\n     AND g.valid_from <= now() AND (g.valid_to IS NULL OR g.valid_to > now())\n     AND ($1 = 'any' OR g.modules && ARRAY[$1, '*'])\n     AND ($2 = 'read' OR g.access = 'write')\n$$;\n"
   }
 ];
 

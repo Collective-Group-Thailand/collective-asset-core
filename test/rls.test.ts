@@ -139,6 +139,29 @@ describe('row-level security on core tables', () => {
       expect(await ids(T.aptB, 'SELECT id FROM core.building')).toEqual([B.aptB, B.condo].sort());
     });
 
+    it('a read grant does not answer for write access (0009)', async () => {
+      const probe = async (module: string, access: string) => {
+        let out: string[] = [];
+        await as<{ id: string }>(T.aptB, async (q) => {
+          out = (await q(`SELECT unnest(core.accessible_building_ids($1, $2)) AS id`, [module, access])).map(
+            (r) => r.id,
+          );
+        });
+        return out;
+      };
+      expect(await probe('smart.metering', 'read')).toContain(B.condo);
+      expect(await probe('smart.metering', 'write')).not.toContain(B.condo);
+      expect(await probe('ops.billing', 'read')).not.toContain(B.condo);
+      // the landlord's unit grant is a write grant
+      let units: string[] = [];
+      await as<{ id: string }>(T.landlord, async (q) => {
+        units = (await q(`SELECT unnest(core.accessible_unit_ids('ops.lease', 'write')) AS id`)).map(
+          (r) => r.id,
+        );
+      });
+      expect(units).toHaveLength(1);
+    });
+
     it('expired and revoked grants show nothing', async () => {
       await db.admin.query(
         `INSERT INTO core.asset_access_grant (tenant_id, grantee_tenant_id, building_id, scope, modules, reason, valid_from, valid_to)
