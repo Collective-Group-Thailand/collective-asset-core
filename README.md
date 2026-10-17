@@ -7,9 +7,9 @@ enums and row types, the tenant-scope session helper, the field-encryption envel
 event contracts**. Decisions: D-152, D-153 (`docs/decisions.md`), ADR-0009, ADR-0010 (`docs/adr/`).
 Each product keeps **its own database**; they share the schema definition and the event contracts, not rows.
 
-Version **0.2.0** = the 18 tables of schema-design v2 §7.1 (getproperty-api `docs/schema-design.md`) plus the
+Version **0.2.1** = the 18 tables of schema-design v2 §7.1 (getproperty-api `docs/schema-design.md`) plus the
 additive 0.2.0 migration for resident party matching (`party_link_via.phone_match`, cross-tenant phone / LINE
-lookup indexes). See `CHANGELOG.md`.
+lookup indexes) and the 0.2.1 fix of the grant `access` argument. See `CHANGELOG.md`.
 
 ## Contents
 | Path | What |
@@ -27,9 +27,9 @@ lookup indexes). See `CHANGELOG.md`.
 ## Install
 ```bash
 # GitHub Packages (private): .npmrc → @collective:registry=https://npm.pkg.github.com
-pnpm add @collective/asset-core@0.2.0
+pnpm add @collective/asset-core@0.2.1
 # until the registry is set up: a Git tag, or a sibling checkout during development
-pnpm add github:collective-group/collective-asset-core#v0.2.0
+pnpm add github:collective-group/collective-asset-core#v0.2.1
 pnpm add @collective/asset-core@link:../collective-asset-core
 ```
 Node 24. Runtime dependencies: `pg`, `zod`.

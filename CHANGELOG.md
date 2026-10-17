@@ -1,5 +1,15 @@
 # @collective/asset-core
 
+## 0.2.1 — 2026-10-17
+
+Fix (patch).
+
+- Migration `0009_grant_access_argument`: `core.accessible_building_ids(module, access)` and
+  `core.accessible_unit_ids(module, access)` compared the grant's own `access` column instead of the `access`
+  argument (a column name shadows a parameter name in SQL-language functions), so a `read` grant answered `true` for
+  `write`. Both functions now use positional parameters; signatures unchanged. RLS policies (which ask for `read`)
+  were not affected. Test 66 (read grant ≠ write access).
+
 ## 0.2.0 — 2026-10-17
 
 Additive (D-153: allowed within the 0.x major), for getproperty B1.3 resident sign-in.
