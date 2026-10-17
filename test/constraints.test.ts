@@ -228,4 +228,19 @@ describe('core constraints and triggers', () => {
       expect(rows.map((r) => r.indexname)).toEqual(['party_line_user_id_idx', 'party_phone_e164_idx']);
     });
   });
+  describe('lease support (0.3.0)', () => {
+    it('accepts documents of kind signature', async () => {
+      const { rows } = await db.admin.query<{ ok: boolean }>(
+        `SELECT 'signature'::core.document_kind = ANY (enum_range(NULL::core.document_kind)) AS ok`,
+      );
+      expect(rows[0]!.ok).toBe(true);
+    });
+
+    it('indexes occupancies by lease (partial, lease_id not null)', async () => {
+      const { rows } = await db.admin.query<{ def: string }>(
+        `SELECT indexdef AS def FROM pg_indexes WHERE schemaname = 'core' AND indexname = 'occupancy_lease_id_idx'`,
+      );
+      expect(rows[0]!.def).toMatch(/\(lease_id\) WHERE \(lease_id IS NOT NULL\)/);
+    });
+  });
 });
