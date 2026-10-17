@@ -1,5 +1,15 @@
 # @collective/asset-core
 
+## 0.3.0 — 2026-10-17
+
+Additive (D-153: allowed within the 0.x major), for getproperty B2 (leases, e-signature, occupancy).
+
+- Migration `0010_lease_documents`: enum value `core.document_kind.signature` (drawn signature images of e-signed
+  contracts and inspection reports, D-062) and the partial index `occupancy_lease_id_idx` on
+  `core.occupancy (lease_id) WHERE lease_id IS NOT NULL` (lease activation opens and the lease end closes the
+  occupancies of a lease).
+- `DOCUMENT_KINDS` and `prisma/core.prisma` updated; tests +2.
+
 ## 0.2.1 — 2026-10-17
 
 Fix (patch).

@@ -286,6 +286,7 @@ enum DocumentKind {
   log_bundle
   tariff_source
   other
+  signature
 
   @@map("document_kind")
   @@schema("core")
@@ -817,6 +818,7 @@ model Occupancy {
 
   @@index([partyId], map: "occupancy_party_id_idx")
   @@index([tenantId, buildingId, unitId], map: "occupancy_tenant_id_building_id_unit_id_idx")
+  @@index([leaseId], map: "occupancy_lease_id_idx", where: raw("(lease_id IS NOT NULL)"))
   @@map("occupancy")
   @@schema("core")
 }

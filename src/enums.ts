@@ -137,6 +137,7 @@ export const DOCUMENT_KINDS = [
   'log_bundle',
   'tariff_source',
   'other',
+  'signature',
 ] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
