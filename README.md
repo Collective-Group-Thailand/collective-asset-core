@@ -7,30 +7,31 @@ enums and row types, the tenant-scope session helper, the field-encryption envel
 event contracts**. Decisions: D-152, D-153 (`docs/decisions.md`), ADR-0009, ADR-0010 (`docs/adr/`).
 Each product keeps **its own database**; they share the schema definition and the event contracts, not rows.
 
-Version **0.3.0** = the 18 tables of schema-design v2 §7.1 (getproperty-api `docs/schema-design.md`) plus the
+Version **0.4.0** = the 18 tables of schema-design v2 §7.1 (getproperty-api `docs/schema-design.md`) plus the
 additive 0.2.0 migration for resident party matching (`party_link_via.phone_match`, cross-tenant phone / LINE
 lookup indexes), the 0.2.1 fix of the grant `access` argument and the additive 0.3.0 migration for leases
-(`document_kind.signature`, occupancy-by-lease index). See `CHANGELOG.md`.
+(`document_kind.signature`, occupancy-by-lease index), and the 0.4.0 runner change for non-superuser product logins
+plus the cross-product webhook signing helpers. See `CHANGELOG.md`.
 
 ## Contents
 | Path | What |
 |---|---|
-| `migrations/0001…0008_*.sql` | the `core` schema: extensions (pgcrypto, citext, btree_gist, pg_trgm), `uuidv7()` guard for PG < 18, roles `gp_owner`/`gp_app`/`gp_platform`/`gp_reporting`, trigger functions, 31 enums, 18 tables with every CHECK/EXCLUDE/partial index, helper functions, RLS (ENABLE + FORCE) and grants |
-| `src/migrate.ts` · `asset-core migrate` | the migration runner (`core._migration`, checksums, advisory lock) |
+| `migrations/0001…0010_*.sql` | the `core` schema: extensions (pgcrypto, citext, btree_gist, pg_trgm), `uuidv7()` guard for PG < 18, roles `gp_owner`/`gp_app`/`gp_platform`/`gp_reporting`, trigger functions, 31 enums, 18 tables with every CHECK/EXCLUDE/partial index, helper functions, RLS (ENABLE + FORCE) and grants |
+| `src/migrate.ts` · `asset-core migrate` | the migration runner (`core._migration`, checksums, advisory lock; a non-superuser runner grants `CREATE ON SCHEMA core` to `gp_platform` only for the run, 0.4.0) |
 | `prisma/core.prisma` · `asset-core prisma-fragment` | Prisma models of the 18 tables (`@@schema("core")`) for apps' multi-file schemas |
 | `src/enums.ts`, `src/types.ts` | TS mirrors of the enums and row shapes |
 | `src/grant-rules.ts` | module keys of `core.asset_access_grant`, which tables check which module, write rules |
 | `src/tenant-scope.ts` | `withTenant(client, tenantId, fn)` — one transaction with `SET LOCAL app.tenant_id` |
 | `src/field-envelope.ts` | per-tenant AES-256-GCM field envelope + lookup hashes (§4.7) |
-| `src/contracts/*` (`@collective/asset-core/contracts`) | envelope + 8 event payloads, fixtures, `parseIntegrationEvent()`, JSON Schema export (`schemas/*.json`) |
+| `src/contracts/*` (`@collective/asset-core/contracts`) | envelope + 8 event payloads, fixtures, `parseIntegrationEvent()`, JSON Schema export (`schemas/*.json`), webhook transport `signIntegrationWebhook()` / `verifyIntegrationWebhook()` (D-238) |
 | `src/testing/*` (`@collective/asset-core/testing`) | `checkPrismaDrift()` — database catalogue vs Prisma DMMF |
 
 ## Install
 ```bash
 # GitHub Packages (private): .npmrc → @collective:registry=https://npm.pkg.github.com
-pnpm add @collective/asset-core@0.3.0
+pnpm add @collective/asset-core@0.4.0
 # until the registry is set up: a Git tag, or a sibling checkout during development
-pnpm add github:collective-group/collective-asset-core#v0.3.0
+pnpm add github:collective-group/collective-asset-core#v0.4.0
 pnpm add @collective/asset-core@link:../collective-asset-core
 ```
 Node 24. Runtime dependencies: `pg`, `zod`.

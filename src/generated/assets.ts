@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 export const PACKAGE_NAME = "@collective/asset-core";
-export const PACKAGE_VERSION = "0.3.0";
+export const PACKAGE_VERSION = "0.4.0";
 
 export interface EmbeddedMigration {
   /** File name without .sql, e.g. "0001_extensions_helpers". Applied in this order. */

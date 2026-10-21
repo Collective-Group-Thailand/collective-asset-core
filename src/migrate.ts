@@ -123,26 +123,11 @@ export async function assetCoreMigrate(options: MigrateOptions = {}): Promise<Mi
         for (const m of pending) log(`asset-core: would apply ${m.id}`);
         return result;
       }
-      for (const m of pending) {
-        const started = Date.now();
-        await db.query('BEGIN');
-        try {
-          await db.query(m.sql);
-          await db.query(
-            `INSERT INTO ${MIGRATION_TABLE} (id, checksum, package_version, execution_ms) VALUES ($1, $2, $3, $4)`,
-            [m.id, m.checksum, PACKAGE_VERSION, Date.now() - started],
-          );
-          await db.query('COMMIT');
-        } catch (error) {
-          await db.query('ROLLBACK').catch(() => undefined);
-          throw new AssetCoreMigrationError(
-            `asset-core migration ${m.id} failed: ${(error as Error).message}`,
-            m.id,
-            error,
-          );
-        }
-        result.applied.push(m.id);
-        log(`asset-core: applied ${m.id} (${Date.now() - started} ms)`);
+      const definerGrant = pending.length > 0 ? await grantDefinerOwnerCreate(db) : false;
+      try {
+        await applyPending(db, pending, result, log);
+      } finally {
+        if (definerGrant) await db.query('REVOKE CREATE ON SCHEMA core FROM gp_platform');
       }
       // The application roles must not touch the ledger of applied migrations.
       await db.query(`DO $$
@@ -159,6 +144,55 @@ export async function assetCoreMigrate(options: MigrateOptions = {}): Promise<Mi
     }
   } finally {
     await owned?.end();
+  }
+}
+
+/**
+ * Non-superuser runners (0.4.0): the Collective platform migrates as the product login — owner of its database,
+ * `NOCREATEROLE`, member of the group roles its postgres init script created. Migration 0007 hands the SECURITY
+ * DEFINER helpers to `gp_platform` (`ALTER FUNCTION … OWNER TO gp_platform`), which PostgreSQL allows only when the
+ * new owner may CREATE in the schema. When the runner is not a superuser, `gp_platform` already exists and lacks
+ * that right, the runner (owner of `core`) grants it for the duration of the pending migrations; the caller revokes it
+ * afterwards, so `gp_platform` keeps no DDL right on `core` at run time. Returns whether it granted.
+ */
+async function grantDefinerOwnerCreate(db: SqlClient): Promise<boolean> {
+  const { rows } = await db.query(
+    `SELECT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) AS superuser,
+            EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'gp_platform') AS platform_role`,
+  );
+  if (rows[0]?.superuser === true || rows[0]?.platform_role !== true) return false;
+  const has = await db.query(`SELECT has_schema_privilege('gp_platform', 'core', 'CREATE') AS can`);
+  if (has.rows[0]?.can === true) return false;
+  await db.query('GRANT CREATE ON SCHEMA core TO gp_platform');
+  return true;
+}
+
+async function applyPending(
+  db: SqlClient,
+  pending: readonly CoreMigration[],
+  result: MigrateResult,
+  log: (line: string) => void,
+): Promise<void> {
+  for (const m of pending) {
+    const started = Date.now();
+    await db.query('BEGIN');
+    try {
+      await db.query(m.sql);
+      await db.query(
+        `INSERT INTO ${MIGRATION_TABLE} (id, checksum, package_version, execution_ms) VALUES ($1, $2, $3, $4)`,
+        [m.id, m.checksum, PACKAGE_VERSION, Date.now() - started],
+      );
+      await db.query('COMMIT');
+    } catch (error) {
+      await db.query('ROLLBACK').catch(() => undefined);
+      throw new AssetCoreMigrationError(
+        `asset-core migration ${m.id} failed: ${(error as Error).message}`,
+        m.id,
+        error,
+      );
+    }
+    result.applied.push(m.id);
+    log(`asset-core: applied ${m.id} (${Date.now() - started} ms)`);
   }
 }
 

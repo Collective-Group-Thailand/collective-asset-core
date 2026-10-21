@@ -1,5 +1,21 @@
 # @collective/asset-core
 
+## 0.4.0 — 2026-10-22
+
+Additive (D-153: allowed within the 0.x major), for the Collective platform (getproperty blueprint tasks T-3, T-16).
+
+- Migration runner: a **non-superuser runner** (the platform's product login — database owner, `NOCREATEROLE`, member
+  of the group roles created by the platform's postgres init script) needs no manual grant any more. When pending
+  migrations exist, the runner is not a superuser, `gp_platform` exists and lacks it, the runner grants
+  `CREATE ON SCHEMA core TO gp_platform` for the duration of the run (0007 hands the SECURITY DEFINER helpers to
+  `gp_platform`, which PostgreSQL allows only when the new owner may create in the schema) and revokes it afterwards,
+  so `gp_platform` keeps no DDL right on `core`. No migration changed (checksums unchanged). Apps that granted it
+  themselves (getproperty-api `migrateCoreAsProductLogin`) drop that workaround.
+- Contracts: the cross-product **webhook transport** (D-238) — `signIntegrationWebhook()`,
+  `verifyIntegrationWebhook()`, `WEBHOOK_HEADERS` (`X-Collective-Event-Id`, `-Source`, `-Timestamp`,
+  `-Signature: v1=<hex HMAC-SHA256(key, "<ts>.<raw body>")>`, several `v1=` during a key rotation, ±300 s).
+- Tests +5 (non-superuser migration, webhook signing).
+
 ## 0.3.0 — 2026-10-17
 
 Additive (D-153: allowed within the 0.x major), for getproperty B2 (leases, e-signature, occupancy).

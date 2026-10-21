@@ -107,3 +107,50 @@ describe('asset-core migrate', () => {
     }
   });
 });
+
+/**
+ * 0.4.0: the Collective platform migrates as the product login (owner of its database, NOCREATEROLE, member of the
+ * group roles its postgres init script created). 0007 hands the definer helpers to gp_platform, which needs CREATE on
+ * `core` for the new owner: the runner grants it for the run and revokes it afterwards.
+ */
+describe('asset-core migrate as a non-superuser product login', () => {
+  let db: TestDatabase;
+  const login = `ac_product_${Math.random().toString(36).slice(2, 8)}`;
+  let url: string;
+  beforeAll(async () => {
+    db = await createTestDatabase('ac_product');
+    for (const [role, attrs] of [
+      ['gp_owner', 'NOLOGIN'],
+      ['gp_app', 'NOLOGIN NOBYPASSRLS'],
+      ['gp_platform', 'NOLOGIN BYPASSRLS'],
+      ['gp_reporting', 'NOLOGIN NOBYPASSRLS'],
+    ])
+      await db.admin.query(
+        `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${role}') THEN CREATE ROLE ${role} ${attrs}; END IF; END $$`,
+      );
+    await db.admin.query(`CREATE ROLE ${login} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'pw'`);
+    await db.admin.query(`GRANT gp_owner, gp_app, gp_platform, gp_reporting TO ${login}`);
+    await db.admin.query(`ALTER DATABASE ${db.name} OWNER TO ${login}`);
+    await db.admin.query(`ALTER SCHEMA public OWNER TO ${login}`);
+    const u = new URL(db.url);
+    u.username = login;
+    u.password = 'pw';
+    url = u.toString();
+  });
+  afterAll(async () => {
+    await db.drop();
+    await db.admin.end().catch(() => undefined);
+  });
+
+  it('applies every migration without a manual grant and leaves gp_platform without CREATE on core', async () => {
+    const result = await assetCoreMigrate({ databaseUrl: url });
+    expect(result.applied).toEqual(coreMigrations.map((m) => m.id));
+    const check = await db.admin.query<{ can: boolean; owner: string }>(
+      `SELECT has_schema_privilege('gp_platform', 'core', 'CREATE') AS can,
+              (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid = 'core.tenant_dek(smallint)'::regprocedure) AS owner`,
+    );
+    expect(check.rows[0]).toEqual({ can: false, owner: 'gp_platform' });
+    const again = await assetCoreMigrate({ databaseUrl: url });
+    expect(again.applied).toEqual([]);
+  });
+});
