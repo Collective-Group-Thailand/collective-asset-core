@@ -3,6 +3,7 @@ export * from './envelope.js';
 export * from './events.js';
 export { CONTRACT_FIXTURES } from './fixtures.js';
 export { integrationEventJsonSchemas } from './json-schema.js';
+export * from './webhook.js';
 
 import { IntegrationEvent } from './events.js';
 
