@@ -21,16 +21,23 @@ export type MembershipStatus = (typeof MEMBERSHIP_STATUSES)[number];
 export const USER_STATUSES = ['active', 'locked', 'disabled'] as const;
 export type UserStatus = (typeof USER_STATUSES)[number];
 
-export const IDENTITY_PROVIDERS = ['line', 'line_liff', 'google'] as const;
+export const IDENTITY_PROVIDERS = [
+  'line',
+  'line_liff',
+  'google',
+  'phone_otp',
+  'firebase_google',
+  'firebase_apple',
+] as const;
 export type IdentityProvider = (typeof IDENTITY_PROVIDERS)[number];
 
 export const PROPERTY_STATUSES = ['active', 'inactive'] as const;
 export type PropertyStatus = (typeof PROPERTY_STATUSES)[number];
 
-export const BUILDING_TYPES = ['apartment', 'condo', 'house_cluster', 'mixed_use'] as const;
+export const BUILDING_TYPES = ['apartment', 'condo', 'house_cluster', 'mixed_use', 'house'] as const;
 export type BuildingType = (typeof BUILDING_TYPES)[number];
 
-export const BUILDING_STATUSES = ['active', 'inactive'] as const;
+export const BUILDING_STATUSES = ['active', 'inactive', 'external'] as const;
 export type BuildingStatus = (typeof BUILDING_STATUSES)[number];
 
 export const OPERATOR_CHANGE_REASONS = [
@@ -61,7 +68,13 @@ export type PartyLinkState = (typeof PARTY_LINK_STATES)[number];
 export const PARTY_LINK_VIAS = ['invitation', 'line_match', 'integration', 'admin', 'phone_match'] as const;
 export type PartyLinkVia = (typeof PARTY_LINK_VIAS)[number];
 
-export const OWNERSHIP_SOURCES = ['manual', 'import', 'getbuild_transfer', 'land_office'] as const;
+export const OWNERSHIP_SOURCES = [
+  'manual',
+  'import',
+  'getbuild_transfer',
+  'land_office',
+  'self_declared',
+] as const;
 export type OwnershipSource = (typeof OWNERSHIP_SOURCES)[number];
 
 /** `tenant` here is the occupancy role "lessee" (D-151) — never the SaaS tenant. */
@@ -138,6 +151,8 @@ export const DOCUMENT_KINDS = [
   'tariff_source',
   'other',
   'signature',
+  'listing_photo',
+  'inspection_report',
 ] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 

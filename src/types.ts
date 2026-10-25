@@ -172,7 +172,8 @@ export interface BuildingRow extends Audit, SoftDelete {
   floors_count: number | null;
   address: Address | null;
   owner_tenant_id: Uuid | null;
-  operator_tenant_id: Uuid;
+  /** Null only for an external stub (a condo not on the platform yet, 0.5.0). */
+  operator_tenant_id: Uuid | null;
   registration_no: string | null;
   handed_over_at: Date | null;
   source_ref: string | null;
