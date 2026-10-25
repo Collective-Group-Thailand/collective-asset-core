@@ -153,6 +153,9 @@ export const DOCUMENT_KINDS = [
   'signature',
   'listing_photo',
   'inspection_report',
+  'pdf_notice',
+  'pdf_certificate',
+  'pdf_summary',
 ] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
