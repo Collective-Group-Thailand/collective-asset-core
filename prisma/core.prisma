@@ -295,6 +295,9 @@ enum DocumentKind {
   signature
   listing_photo
   inspection_report
+  pdf_notice
+  pdf_certificate
+  pdf_summary
 
   @@map("document_kind")
   @@schema("core")

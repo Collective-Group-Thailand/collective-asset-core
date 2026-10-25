@@ -1,5 +1,14 @@
 # @collective/asset-core
 
+## 0.6.0 — 2026-10-25
+
+Additive (D-153: allowed within the 0.x major), for getproperty B7.5 (landlord document set, D-253).
+
+- Migration `0012_landlord_documents`: `document_kind` `pdf_notice` (lease notices: rent increase, renewal offer,
+  non-renewal, termination, late payment), `pdf_certificate` (rent payment certificate), `pdf_summary` (annual rental
+  income summary).
+- `DOCUMENT_KINDS` and `prisma/core.prisma` updated.
+
 ## 0.5.0 — 2026-10-25
 
 Additive (D-153: allowed within the 0.x major), for getproperty B7.1 (landlord self-serve and portfolio, D-251, D-255).
