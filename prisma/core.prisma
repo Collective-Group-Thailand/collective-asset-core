@@ -66,6 +66,9 @@ enum IdentityProvider {
   line
   line_liff
   google
+  phone_otp
+  firebase_google
+  firebase_apple
 
   @@map("identity_provider")
   @@schema("core")
@@ -84,6 +87,7 @@ enum BuildingType {
   condo
   house_cluster
   mixed_use
+  house
 
   @@map("building_type")
   @@schema("core")
@@ -92,6 +96,7 @@ enum BuildingType {
 enum BuildingStatus {
   active
   inactive
+  external
 
   @@map("building_status")
   @@schema("core")
@@ -172,6 +177,7 @@ enum OwnershipSource {
   import
   getbuild_transfer
   land_office
+  self_declared
 
   @@map("ownership_source")
   @@schema("core")
@@ -287,6 +293,8 @@ enum DocumentKind {
   tariff_source
   other
   signature
+  listing_photo
+  inspection_report
 
   @@map("document_kind")
   @@schema("core")
@@ -546,7 +554,7 @@ model Building {
   floorsCount      Int?           @map("floors_count") @db.SmallInt
   address          Json?
   ownerTenantId    String?        @map("owner_tenant_id") @db.Uuid
-  operatorTenantId String         @map("operator_tenant_id") @db.Uuid
+  operatorTenantId String?        @map("operator_tenant_id") @db.Uuid
   registrationNo   String?        @map("registration_no")
   handedOverAt     DateTime?      @map("handed_over_at") @db.Timestamptz(6)
   sourceRef        String?        @map("source_ref")
@@ -563,7 +571,7 @@ model Building {
   tenant         Tenant   @relation("BuildingTenant", fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "building_tenant_id_fkey")
   property       Property @relation(fields: [propertyId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "building_property_id_fkey")
   ownerTenant    Tenant?  @relation("BuildingOwnerTenant", fields: [ownerTenantId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "building_owner_tenant_id_fkey")
-  operatorTenant Tenant   @relation("BuildingOperatorTenant", fields: [operatorTenantId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "building_operator_tenant_id_fkey")
+  operatorTenant Tenant?  @relation("BuildingOperatorTenant", fields: [operatorTenantId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "building_operator_tenant_id_fkey")
 
   operatorPeriods  BuildingOperatorPeriod[]
   floors           Floor[]

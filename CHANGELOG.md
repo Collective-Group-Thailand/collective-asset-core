@@ -1,5 +1,20 @@
 # @collective/asset-core
 
+## 0.5.0 — 2026-10-25
+
+Additive (D-153: allowed within the 0.x major), for getproperty B7.1 (landlord self-serve and portfolio, D-251, D-255).
+
+- Migration `0011_landlord_portfolio`: enum values `identity_provider` `phone_otp`, `firebase_google`, `firebase_apple`
+  (the sign-in providers of getpack); `building_type.house`; `building_status.external`; `ownership_source.self_declared`;
+  `document_kind` `listing_photo`, `inspection_report`.
+- `core.building.operator_tenant_id` is nullable for **external stubs only** (CHECK `building_operator_required_check`):
+  a condo that is not on the platform yet, created when a landlord adds a unit there.
+- RLS: a tenant reads the building and property of every unit row it holds (`core.own_unit_building_ids()`,
+  `core.own_unit_property_ids()`, SECURITY DEFINER, owned by `gp_platform`), so landlords with units in one stub condo
+  share the stub and still see only their own units. Policies `building_rls_read` and `property_rls_read` replaced.
+- `IDENTITY_PROVIDERS`, `BUILDING_TYPES`, `BUILDING_STATUSES`, `OWNERSHIP_SOURCES`, `DOCUMENT_KINDS`, `BuildingRow` and
+  `prisma/core.prisma` updated; tests +3 (stub without operator, shared stub visibility, landlord writes).
+
 ## 0.4.0 — 2026-10-22
 
 Additive (D-153: allowed within the 0.x major), for the Collective platform (getproperty blueprint tasks T-3, T-16).
