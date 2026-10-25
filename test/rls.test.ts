@@ -256,6 +256,58 @@ describe('row-level security on core tables', () => {
     }
   });
 
+  describe('external stubs (0.5.0, D-251)', () => {
+    const L2 = '0199f1c2-0000-7000-8000-00000000001e';
+    const STUB = '0199f1c2-0001-7000-8000-00000000000f';
+    const STUB_PROP = '0199f1c2-0005-7000-8000-00000000000f';
+    const S1 = '0199f1c2-0002-7000-8000-0000000000f1';
+    const S2 = '0199f1c2-0002-7000-8000-0000000000f2';
+    beforeAll(async () => {
+      await db.admin.query(`
+        INSERT INTO core.tenant (id, type, slug, display_name, legal_name, legal_form) VALUES
+          ('${L2}', 'landlord', 'landlord-2', 'Landlord 2', 'Landlord Two', 'person');
+        INSERT INTO core.property (id, tenant_id, code, name) VALUES ('${STUB_PROP}', '${T.landlord}', 'S', 'Stub condo');
+        INSERT INTO core.building (id, tenant_id, property_id, code, name, type, owner_tenant_id, operator_tenant_id, status)
+          VALUES ('${STUB}', '${T.landlord}', '${STUB_PROP}', 'S', 'Stub condo', 'condo', NULL, NULL, 'external');
+        INSERT INTO core.unit (id, tenant_id, building_id, property_id, unit_no, type) VALUES
+          ('${S1}', '${T.landlord}', '${STUB}', '${STUB_PROP}', '12/1', 'condo_unit'),
+          ('${S2}', '${L2}', '${STUB}', '${STUB_PROP}', '12/2', 'condo_unit');
+      `);
+    });
+
+    it('only an external stub may have no operator', async () => {
+      await expect(
+        db.admin.query(
+          `INSERT INTO core.building (tenant_id, property_id, code, name, type, operator_tenant_id)
+           VALUES ('${T.landlord}', '${STUB_PROP}', 'X', 'No operator', 'house', NULL)`,
+        ),
+      ).rejects.toThrow(/building_operator_required_check/);
+    });
+
+    it('two landlords in one stub condo both see the stub and its property, and only their own units', async () => {
+      expect(await ids(T.landlord, `SELECT id FROM core.building WHERE id = '${STUB}'`)).toEqual([STUB]);
+      expect(await ids(L2, `SELECT id FROM core.building WHERE id = '${STUB}'`)).toEqual([STUB]);
+      expect(await ids(L2, `SELECT id FROM core.property WHERE id = '${STUB_PROP}'`)).toEqual([STUB_PROP]);
+      expect(await ids(T.landlord, `SELECT id FROM core.unit WHERE building_id = '${STUB}'`)).toEqual([S1]);
+      expect(await ids(L2, `SELECT id FROM core.unit WHERE building_id = '${STUB}'`)).toEqual([S2]);
+      // a third tenant sees nothing of the stub
+      expect(await ids(T.aptA, `SELECT id FROM core.building WHERE id = '${STUB}'`)).toEqual([]);
+    });
+
+    it('a landlord adds its unit to a stub created by another landlord but cannot edit the stub', async () => {
+      await as(L2, async (q) => {
+        await q(
+          `INSERT INTO core.unit (tenant_id, building_id, property_id, unit_no, type)
+           VALUES ('${L2}', '${STUB}', '${STUB_PROP}', '12/3', 'condo_unit')`,
+        );
+        const updated = await q(
+          `UPDATE core.building SET name = 'Renamed' WHERE id = '${STUB}' RETURNING id`,
+        );
+        expect(updated).toEqual([]);
+      });
+    });
+  });
+
   it('the parties of another tenant stay invisible even through a unit grant', async () => {
     expect(await ids(T.landlord, 'SELECT id FROM core.party')).toEqual([P.occupantCondo1]);
   });
