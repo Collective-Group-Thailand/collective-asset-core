@@ -11,6 +11,7 @@ enum TenantType {
   condo_juristic
   pm_company
   landlord
+  agency
 
   @@map("tenant_type")
   @@schema("core")
@@ -349,6 +350,7 @@ enum GrantReason {
   warranty
   juristic_handover
   support_other
+  listing_mandate
 
   @@map("grant_reason")
   @@schema("core")
@@ -947,6 +949,8 @@ model Document {
   deletedAt           DateTime?           @map("deleted_at") @db.Timestamptz(6)
   deletedBy           String?             @map("deleted_by") @db.Uuid
   deleteReason        String?             @map("delete_reason")
+  legalHold           Boolean             @default(false) @map("legal_hold")
+  legalHoldUntil      DateTime?           @map("legal_hold_until") @db.Timestamptz(6)
 
   tenant     Tenant?    @relation("DocumentTenant", fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "document_tenant_id_fkey")
   building   Building?  @relation(fields: [buildingId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "document_building_id_fkey")

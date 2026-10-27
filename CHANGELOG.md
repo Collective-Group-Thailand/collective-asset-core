@@ -1,5 +1,23 @@
 # @collective/asset-core
 
+## 0.7.0 — 2026-10-27
+
+Additive (D-153: allowed within the 0.x major), for getproperty G2 (agency tenants and listing mandates, D-284, D-287)
+and the legal-hold guard getproperty G1 asked for (D-286).
+
+- Migration `0013_agency_mandates`: `tenant_type` `agency`; `grant_reason` `listing_mandate`; grant module key
+  `ops.listing` (`asset_access_grant_modules_check` replaced).
+- Grant write policy: besides the building's owner or operator, the tenant **holding a unit row**
+  (`core.holds_unit(uuid)`, SECURITY DEFINER) may grant that one unit with reason `listing_mandate` and app modules
+  only (`ops.listing`, `ops.lease`, `ops.billing`, `ops.service`) — a landlord's unit in a condo stub or in another
+  tenant's building. A unit grant still does not open the building row.
+- `core.document.legal_hold` (boolean, default false) + `legal_hold_until` (timestamptz; null while held =
+  open-ended), CHECK `document_legal_hold_check`; triggers `document_legal_hold_guard_update` (`BEFORE UPDATE OF
+  deleted_at`) and `document_legal_hold_guard_delete` (`BEFORE DELETE`) raise `core.legal_hold` (P0001) while the hold
+  is in force. Generic: core does not know why a document is held; the app mirrors its own hold records.
+- `TENANT_TYPES`, `GRANT_REASONS`, `GRANT_MODULES`, `GRANTEE_WRITABLE_MODULES`, new `UNIT_HOLDER_GRANT_MODULES`,
+  `DocumentRow`, `prisma/core.prisma` updated; tests +5 (`agency-mandates.test.ts`).
+
 ## 0.6.0 — 2026-10-25
 
 Additive (D-153: allowed within the 0.x major), for getproperty B7.5 (landlord document set, D-253).

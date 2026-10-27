@@ -3,7 +3,7 @@
  * identical to the API strings. `test/enums.test.ts` proves parity with `pg_enum` after migrating.
  * Additive changes only within a major version (D-153): add values at the end, never rename or drop.
  */
-export const TENANT_TYPES = ['apartment', 'condo_juristic', 'pm_company', 'landlord'] as const;
+export const TENANT_TYPES = ['apartment', 'condo_juristic', 'pm_company', 'landlord', 'agency'] as const;
 export type TenantType = (typeof TENANT_TYPES)[number];
 
 export const TENANT_LEGAL_FORMS = ['person', 'company', 'juristic_person'] as const;
@@ -180,6 +180,7 @@ export const GRANT_REASONS = [
   'warranty',
   'juristic_handover',
   'support_other',
+  'listing_mandate',
 ] as const;
 export type GrantReason = (typeof GRANT_REASONS)[number];
 

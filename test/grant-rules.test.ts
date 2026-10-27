@@ -7,8 +7,14 @@ import { GRANT_MODULES, grantCovers, validateGrant } from '../src/grant-rules.js
 
 describe('grant rule set', () => {
   it('the module keys equal the database CHECK list', () => {
-    const sql = readFileSync(join(import.meta.dirname, '..', 'migrations', '0007_grants_rls.sql'), 'utf8');
-    const list = /modules <@ ARRAY\[([^\]]+)\]/.exec(sql)?.[1] ?? '';
+    // the latest migration that (re)defines asset_access_grant_modules_check (0007, replaced by 0013)
+    const sql = readFileSync(
+      join(import.meta.dirname, '..', 'migrations', '0013_agency_mandates.sql'),
+      'utf8',
+    );
+    const list =
+      /ADD CONSTRAINT asset_access_grant_modules_check[^;]*?modules <@ ARRAY\[([^\]]+)\]/s.exec(sql)?.[1] ??
+      '';
     const keys = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]);
     expect(keys.sort()).toEqual([...GRANT_MODULES].sort());
   });
