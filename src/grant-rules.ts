@@ -13,6 +13,7 @@ export const GRANT_MODULES = [
   'ops.billing',
   'ops.service',
   'ops.community',
+  'ops.listing',
   'smart.metering',
   'smart.access',
   'juristic',
@@ -46,10 +47,23 @@ export const GRANTEE_WRITABLE_MODULES: readonly GrantModule[] = [
   'ops.billing',
   'ops.service',
   'ops.community',
+  'ops.listing',
   'smart.metering',
   'smart.access',
   'juristic',
   'warranty',
+];
+
+/**
+ * 0013: modules a tenant that only *holds a unit row* (a landlord's unit in a condo stub or another tenant's building)
+ * may grant for that one unit, with reason `listing_mandate` (an agency mandate, D-284 / D-287). The database enforces
+ * this in the `asset_access_grant_rls_write` policy; owners and operators of the building may grant any module.
+ */
+export const UNIT_HOLDER_GRANT_MODULES: readonly GrantModule[] = [
+  'ops.listing',
+  'ops.lease',
+  'ops.billing',
+  'ops.service',
 ];
 
 /** Grant reasons that may carry `access = 'write'`; the others are read-only by policy of the services. */

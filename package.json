@@ -1,6 +1,6 @@
 {
   "name": "@collective/asset-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Collective Group asset core: the `core` PostgreSQL schema (SQL migrations + runner), its Prisma fragment, TypeScript row types and enums, tenant-scope helpers and the zod integration event contracts (D-153, ADR-0010).",
   "license": "UNLICENSED",
   "private": false,

@@ -362,6 +362,10 @@ export interface DocumentRow extends Audit, SoftDelete {
   thumbnail_key: string | null;
   source_ref: string | null;
   delete_reason: string | null;
+  /** 0013: legal hold placed by the app (D-286); no delete while in force. */
+  legal_hold: boolean;
+  /** 0013: end of the hold; null while held = open-ended. */
+  legal_hold_until: Date | null;
 }
 
 export interface AssetAccessGrantRow extends Audit {
